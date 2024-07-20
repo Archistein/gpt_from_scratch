@@ -1,3 +1,4 @@
+from typing import Generator
 from itertools import chain
 from datasets import load_dataset
 from tokenizers import ByteLevelBPETokenizer, Tokenizer, models, pre_tokenizers, trainers, processors, decoders
@@ -14,13 +15,13 @@ peS2o = load_dataset('nampdn-ai/mini-peS2o', token=access_token)
 
 # Tokenization
 
-def train_iterator(batch_size: int = 10, *datasets):
+def tokenizer_train_iterator(batch_size: int = 50, *datasets) -> Generator[list[str], None, None]:
     for ds in chain(*map(list, datasets)):
         for j in range(0, len(ds), batch_size):
             yield ds[j:batch_size+j]['text']
 
 tokenizer = ByteLevelBPETokenizer()
-tokenizer.train_from_iterator(train_iterator(5, books.values(), peS2o.values(), wiki.values()), vocab_size=8192, min_frequency=2, special_tokens=['[EOS]'], show_progress=True)
+tokenizer.train_from_iterator(tokenizer_train_iterator(5, books.values(), peS2o.values(), wiki.values()), vocab_size=8192, min_frequency=2, special_tokens=['[EOS]'], show_progress=True)
 tokenizer.save('tokenizer.json')
 tokenizer = Tokenizer.from_file('tokenizer.json')
 
